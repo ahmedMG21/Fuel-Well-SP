@@ -1,29 +1,34 @@
 import json
 import re
-import base64
-import os
-import cv2
-import numpy as np
-from thefuzz import fuzz
-import requests
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+import base64  # For encoding image to base64
+import os  # For file operations
+import cv2  # OpenCV for image processing
+import numpy as np  # For numerical operations
+from thefuzz import fuzz  # For string similarity matching
+import requests  # For making API calls
+from fastapi import FastAPI, File, UploadFile, HTTPException  # FastAPI components
+from fastapi.responses import JSONResponse  # For JSON responses
+from pydantic import BaseModel  # For data validation and parsing
 
+# Class to handle nutrition facts extraction
 class NutritionFactsExtractor:
     def __init__(self, normalization_dict=None):
         self.google_key = "YOUR-API-KEY"  # Replace with your actual API key
-        self.normalization_dict = normalization_dict or {}
+        self.normalization_dict = normalization_dict or {}  # Dictionary for normalizing nutrition fact names
 
     def preprocess_image(self, image_path):
+        # Load the image from the given path
         image = cv2.imread(image_path)
         return image
 
     def detect_text(self, image_path):
+        # Preprocess the image
         image = self.preprocess_image(image_path)
+        # Encode the image to base64
         _, image_encoded = cv2.imencode('.jpg', image)
         image_content = base64.b64encode(image_encoded).decode('utf-8')
 
+        # Set up the request to the Google Vision API
         url = f"https://vision.googleapis.com/v1/images:annotate?key={self.google_key}"
         headers = {'Content-Type': 'application/json'}
         payload = json.dumps({
@@ -41,22 +46,26 @@ class NutritionFactsExtractor:
             ]
         })
 
+        # Send the request and process the response
         response = requests.post(url, headers=headers, data=payload)
         if response.status_code == 200:
             response_json = response.json()
             text_annotations = response_json['responses'][0].get('textAnnotations', [])
             if text_annotations:
-                return text_annotations[0]['description']
+                return text_annotations[0]['description']  # Return detected text
         return ''
 
     def extract_nutrition_facts(self, text):
+        # Split text into lines
         lines = text.split('\n')
         facts = {}
         num_lines = len(lines)
 
+        # Iterate over each line to find and extract nutrition facts
         for i, line in enumerate(lines):
             for key, values in self.normalization_dict.items():
                 match_found = False
+                # Check for direct matches in the line
                 for value in values:
                     if value.lower() in line.lower():
                         match = re.search(r"(\d+\.?\d*)", line)
@@ -65,6 +74,7 @@ class NutritionFactsExtractor:
                             match_found = True
                             break
                         elif i + 1 < num_lines:
+                            # Check the next line if no match in the current line
                             next_line = lines[i + 1]
                             match = re.search(r"(\d+\.?\d*)", next_line)
                             if match:
@@ -74,6 +84,7 @@ class NutritionFactsExtractor:
                 if match_found:
                     continue
 
+                # If no direct match, use fuzzy matching
                 max_similarity = 90
                 best_match = None
                 for value in values:
@@ -102,16 +113,18 @@ class NutritionFactsExtractor:
         return facts
 
     def validate_facts(self, facts):
-        # Add validation logic to check the extracted values
+        # Placeholder for validation logic, if needed
         return facts
 
 # FastAPI app setup
 app = FastAPI()
 
+# Pydantic model for response
 class ImageUploadResponse(BaseModel):
     text: str
     facts: dict
 
+# Load normalization dictionaries on startup
 @app.on_event("startup")
 async def load_dictionaries():
     try:
@@ -127,31 +140,34 @@ async def load_dictionaries():
         print(f"Error loading dictionaries: {e}")
         raise
 
+# Endpoint for extracting nutrition facts from uploaded image
 @app.post("/extract_nutrition_facts/", response_model=ImageUploadResponse)
 async def extract_nutrition_facts(file: UploadFile = File(...)):
     try:
-        # Create temp directory if it doesn't exist
+        # Create temporary directory for saving the uploaded file
         temp_dir = "temp"
         os.makedirs(temp_dir, exist_ok=True)
         
-        # Save uploaded file
+        # Save the uploaded file to the temporary directory
         file_location = f"{temp_dir}/{file.filename}"
         with open(file_location, "wb+") as file_object:
             file_object.write(await file.read())
 
-        # Detect text from image
+        # Detect text from the image
         extractor = app.state.extractor
         text = extractor.detect_text(file_location)
         if not text:
             raise HTTPException(status_code=400, detail="Text detection failed")
 
-        # Extract nutrition facts
+        # Extract nutrition facts from the detected text
         facts = extractor.extract_nutrition_facts(text)
         facts = extractor.validate_facts(facts)
 
         # Clean up the saved file
         os.remove(file_location)
 
+        # Return the response
         return ImageUploadResponse(text=text, facts=facts)
     except Exception as e:
+        # Handle exceptions and return appropriate error message
         raise HTTPException(status_code=500, detail=str(e))
