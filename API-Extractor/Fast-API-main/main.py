@@ -1,14 +1,14 @@
 import json
 import re
-import base64  # For encoding image to base64
-import os  # For file operations
-import cv2  # OpenCV for image processing
-import numpy as np  # For numerical operations
-from thefuzz import fuzz  # For string similarity matching
-import requests  # For making API calls
-from fastapi import FastAPI, File, UploadFile, HTTPException  # FastAPI components
-from fastapi.responses import JSONResponse  # For JSON responses
-from pydantic import BaseModel  # For data validation and parsing
+import base64  
+import os  
+import cv2
+import numpy as np  
+from thefuzz import fuzz  
+import requests  
+from fastapi import FastAPI, File, UploadFile, HTTPException  
+from fastapi.responses import JSONResponse  
+from pydantic import BaseModel  
 
 # Class to handle nutrition facts extraction
 class NutritionFactsExtractor:
