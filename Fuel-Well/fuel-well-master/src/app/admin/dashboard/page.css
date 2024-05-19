@@ -1,0 +1,9 @@
+body{
+    background-color: #fff;
+}
+
+
+/*hide the resource menu*/
+.MuiDrawer-root a[href^='#/resource-to-exclude'] {
+    display: none;
+}

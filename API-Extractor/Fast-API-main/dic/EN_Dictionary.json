@@ -1,0 +1,62 @@
+{
+  "serving size": [
+    "serving size",
+    "serv size",
+    "total serving",
+    "portion size"
+  ],
+  "total fat": ["total fat", "total fats", "fats", "fat total", "fat"],
+  "calories": ["calories", "calories (kcal)", "total calories"],
+  "saturated fat": [
+    "saturated fat",
+    "saturated fats",
+    "saturated",
+    "sat Fat",
+    "fat - saturates",
+    "of which saturated fat",
+    "of which saturated fatty acids",
+    "of which saturated fatty acid",
+    "of which saturated",
+    "of which saturates"
+  ],
+  "total carbohydrate": [
+    "carbohydrate",
+    "carbohydrates",
+    "carbohydrates total",
+    "total carbohydrate",
+    "total carbohydrates",
+    "total carbs",
+    "net carbs"
+  ],
+  "dietary fiber": [
+    "dietary fiber",
+    "dietary fibers",
+    "dietary fibres",
+    "dietaryfiber",
+    "of which dietary fiber",
+    "fiber",
+    "fibers",
+    "fibre",
+    "nutrition fibers"
+  ],
+  "total sugar": [
+    "total sugar",
+    "total sugars",
+    "sugars",
+    "sugar",
+    "of which sugar",
+    "of which sugars"
+  ],
+  "added sugar": [
+    "added sugar",
+    "added sugars",
+    "additional sugar",
+    "within added Sugar",
+    "includes of added sugars",
+    "includes added sugars",
+    "includes added sugar",
+    "incl added sugar",
+    "of which added sugars"
+  ],
+  "protein": ["protein", "proteins"]
+}
